@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { today } from "@/lib/utils";
 import { useLang } from "@/lib/i18n";
@@ -14,6 +14,14 @@ interface AttendanceEntry {
 const PAGE_SIZE = 20;
 
 export default function AttendancePage() {
+  return (
+    <Suspense fallback={<div className="p-6 text-gray-400">Loading...</div>}>
+      <AttendanceInner />
+    </Suspense>
+  );
+}
+
+function AttendanceInner() {
   const { t } = useLang();
   const searchParams = useSearchParams();
   const initialShift = (searchParams.get("shift") === "EVENING" ? "EVENING" : "MORNING") as "MORNING" | "EVENING";
