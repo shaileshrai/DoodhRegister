@@ -5,7 +5,7 @@ import { useLang } from "@/lib/i18n";
 
 interface BillRow {
   bill: { id: number; customerId: number; year: number; month: number; totalQuantity: number; totalAmount: number; paymentStatus: "PAID" | "DUE"; paidDate: string | null };
-  customer: { id: number; name: string; mobile: string; shift: string; rate: number; defaultQuantity: number };
+  customer: { id: number; name: string; mobile: string; shift: string; rate: number | null; defaultQuantity: number | null };
 }
 
 interface DailyRecord {
@@ -93,10 +93,9 @@ export default function BillingPage() {
     const lines: string[] = [
       `🐄 *Milk Bill — ${MONTH_NAMES[month - 1]} ${year}*`,
       `Customer: ${row.customer.name}`,
-      `Rate: ₹${row.customer.rate}/L`,
-      ``,
-      `*Daily Record:*`,
     ];
+    if (row.customer.rate != null) lines.push(`Rate: ₹${row.customer.rate}/L`);
+    lines.push(``, `*Daily Record:*`);
 
     const days = getDaysInMonth(year, month);
     for (let d = 1; d <= days; d++) {
@@ -223,12 +222,12 @@ export default function BillingPage() {
           <div className="space-y-2">
             {pageRows.map((row) => (
               <div key={row.bill.id} className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-3">
-                <div className={`w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0 ${row.customer.shift === "MORNING" ? "bg-amber-400" : "bg-indigo-400"}`}>
+                <div className={`w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0 ${row.customer.shift === "MORNING" ? "bg-amber-400" : row.customer.shift === "EVENING" ? "bg-indigo-400" : "bg-gray-400"}`}>
                   {row.customer.name.charAt(0)}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="font-medium text-gray-800">{row.customer.name}</div>
-                  <div className="text-xs text-gray-400">{row.bill.totalQuantity.toFixed(1)} L · ₹{row.customer.rate}/L</div>
+                  <div className="text-xs text-gray-400">{row.bill.totalQuantity.toFixed(1)} L{row.customer.rate != null ? ` · ₹${row.customer.rate}/L` : ""}</div>
                 </div>
                 <div className="text-right mr-2">
                   <div className="font-semibold text-gray-800">{formatCurrency(row.bill.totalAmount)}</div>
@@ -343,7 +342,7 @@ function generateBillHTML(
     <tr><td>Customer</td><td>${customer.name}</td></tr>
     <tr><td>Mobile</td><td>${customer.mobile}</td></tr>
     <tr><td>Shift</td><td>${customer.shift}</td></tr>
-    <tr><td>Rate</td><td>₹${customer.rate}/L</td></tr>
+    ${customer.rate != null ? `<tr><td>Rate</td><td>₹${customer.rate}/L</td></tr>` : ""}
   </table>
 
   <div class="section-title">Daily Milk Record</div>

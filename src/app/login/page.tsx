@@ -55,7 +55,6 @@ export default function LoginPage() {
             {loading ? "Signing in…" : "Sign In"}
           </button>
         </form>
-        <p className="text-center text-xs text-gray-400 mt-6">Default password: dairy123</p>
       </div>
     </div>
   );

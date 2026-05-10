@@ -6,9 +6,9 @@ export function runMigrations() {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
       mobile TEXT NOT NULL,
-      shift TEXT NOT NULL CHECK(shift IN ('MORNING','EVENING')),
-      rate REAL NOT NULL,
-      default_quantity REAL NOT NULL,
+      shift TEXT NOT NULL CHECK(shift IN ('MORNING','EVENING','OTHER')),
+      rate REAL,
+      default_quantity REAL,
       is_active INTEGER NOT NULL DEFAULT 1,
       joined_date TEXT NOT NULL,
       left_date TEXT,
@@ -60,4 +60,28 @@ export function runMigrations() {
       UNIQUE(year, month)
     );
   `);
+
+  // Migration: add OTHER shift type and make rate/qty nullable
+  const tableInfo = sqlite.prepare("SELECT sql FROM sqlite_master WHERE type='table' AND name='customers'").get() as { sql: string } | undefined;
+  if (tableInfo && (!tableInfo.sql.includes("'OTHER'") || tableInfo.sql.includes("rate REAL NOT NULL"))) {
+    sqlite.exec(`
+      BEGIN TRANSACTION;
+      CREATE TABLE customers_new (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        mobile TEXT NOT NULL,
+        shift TEXT NOT NULL CHECK(shift IN ('MORNING','EVENING','OTHER')),
+        rate REAL,
+        default_quantity REAL,
+        is_active INTEGER NOT NULL DEFAULT 1,
+        joined_date TEXT NOT NULL,
+        left_date TEXT,
+        created_at TEXT NOT NULL DEFAULT (date('now'))
+      );
+      INSERT INTO customers_new SELECT * FROM customers;
+      DROP TABLE customers;
+      ALTER TABLE customers_new RENAME TO customers;
+      COMMIT;
+    `);
+  }
 }

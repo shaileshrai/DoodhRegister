@@ -8,9 +8,9 @@ interface Customer {
   id: number;
   name: string;
   mobile: string;
-  shift: "MORNING" | "EVENING";
-  rate: number;
-  defaultQuantity: number;
+  shift: "MORNING" | "EVENING" | "OTHER";
+  rate: number | null;
+  defaultQuantity: number | null;
   isActive: boolean;
   joinedDate: string;
 }
@@ -38,7 +38,6 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [records, setRecords] = useState<DailyRecord[]>([]);
   const [bills, setBills] = useState<MonthlyBill[]>([]);
-  const [editing, setEditing] = useState(false);
   const [form, setForm] = useState<Partial<Customer>>({});
   const [saving, setSaving] = useState(false);
   const [tab, setTab] = useState<"calendar" | "billing" | "edit">("calendar");
@@ -88,9 +87,8 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
       }),
     });
     if (res.ok) {
-      const updated = await res.json();
-      setCustomer(updated);
-      setEditing(false);
+      router.push("/customers");
+      return;
     }
     setSaving(false);
   }
@@ -115,7 +113,7 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
   const recordMap = new Map(records.map((r) => [r.date.substring(8, 10), r]));
   const daysInMonth = getDaysInMonth(calYear, calMonth);
   const monthTotal = records.filter((r) => r.isPresent).reduce((s, r) => s + r.quantityTaken, 0);
-  const monthAmount = monthTotal * customer.rate;
+  const monthAmount = monthTotal * (customer.rate ?? 0);
   const totalDue = bills.filter((b) => b.paymentStatus === "DUE").reduce((s, b) => s + b.totalAmount, 0);
 
   return (
@@ -123,12 +121,16 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
       {/* Header */}
       <div className="flex items-center gap-3 mb-4">
         <button onClick={() => router.back()} className="text-gray-400 hover:text-gray-600">←</button>
-        <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0 ${customer.shift === "MORNING" ? "bg-amber-400" : "bg-indigo-400"}`}>
+        <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0 ${customer.shift === "MORNING" ? "bg-amber-400" : customer.shift === "EVENING" ? "bg-indigo-400" : "bg-gray-400"}`}>
           {customer.name.charAt(0)}
         </div>
         <div className="flex-1">
           <h1 className="text-xl font-bold text-gray-800">{customer.name}</h1>
-          <p className="text-sm text-gray-400">{customer.mobile} · {customer.shift === "MORNING" ? t("morning") : t("evening")} · {customer.defaultQuantity}L/day · ₹{customer.rate}/L</p>
+          <p className="text-sm text-gray-400">
+            {customer.mobile} · {customer.shift === "MORNING" ? t("morning") : customer.shift === "EVENING" ? t("evening") : "Adhoc"}
+            {customer.defaultQuantity != null && ` · ${customer.defaultQuantity}L/day`}
+            {customer.rate != null && ` · ₹${customer.rate}/L`}
+          </p>
         </div>
       </div>
 
@@ -244,23 +246,25 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
         <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
           <div className="grid grid-cols-1 gap-4">
             {[
-              { labelKey: "fullName" as const, key: "name", type: "text" },
-              { labelKey: "mobileNumber" as const, key: "mobile", type: "tel" },
-              { labelKey: "ratePerL" as const, key: "rate", type: "number" },
-              { labelKey: "dailyQty" as const, key: "defaultQuantity", type: "number" },
-            ].map(({ labelKey, key, type }) => {
-              const val = (form as Record<string, unknown>)[key] as string ?? "";
+              { labelKey: "fullName" as const, key: "name", type: "text", step: undefined },
+              { labelKey: "mobileNumber" as const, key: "mobile", type: "tel", step: undefined },
+              { labelKey: "ratePerL" as const, key: "rate", type: "number", step: "0.01" },
+              { labelKey: "dailyQty" as const, key: "defaultQuantity", type: "number", step: "0.01" },
+            ].map(({ labelKey, key, type, step }) => {
+              const val = (form as Record<string, unknown>)[key];
+              const displayVal = val == null ? "" : String(val);
               const isMobile = key === "mobile";
-              const mobileInvalid = isMobile && String(val).length > 0 && !/^\d{10}$/.test(String(val));
+              const mobileInvalid = isMobile && displayVal.length > 0 && !/^\d{10}$/.test(displayVal);
               return (
                 <div key={key}>
                   <label className="block text-sm font-medium text-gray-700 mb-1">{t(labelKey)}</label>
                   <input
                     type={type}
-                    value={val}
+                    step={step}
+                    value={displayVal}
                     onChange={(e) => {
                       const v = isMobile ? e.target.value.replace(/\D/g, "").slice(0, 10) : e.target.value;
-                      setForm((f) => ({ ...f, [key]: type === "number" ? parseFloat(v) : v }));
+                      setForm((f) => ({ ...f, [key]: type === "number" ? (v === "" ? null : parseFloat(v)) : v }));
                     }}
                     maxLength={isMobile ? 10 : undefined}
                     className={`w-full border rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 ${mobileInvalid ? "border-red-400" : "border-gray-300"}`}
@@ -271,15 +275,15 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
             })}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">{t("shift")}</label>
-              <div className="flex rounded-lg overflow-hidden border border-gray-300">
-                {(["MORNING", "EVENING"] as const).map((s) => (
+              <div className="grid grid-cols-3 rounded-lg overflow-hidden border border-gray-300">
+                {(["MORNING", "EVENING", "OTHER"] as const).map((s) => (
                   <button
                     key={s}
                     type="button"
                     onClick={() => setForm((f) => ({ ...f, shift: s }))}
-                    className={`flex-1 py-2.5 text-sm font-medium transition ${form.shift === s ? "bg-blue-600 text-white" : "bg-white text-gray-600"}`}
+                    className={`py-2.5 text-sm font-medium transition ${form.shift === s ? "bg-blue-600 text-white" : "bg-white text-gray-600"}`}
                   >
-                    {s === "MORNING" ? `🌅 ${t("morning")}` : `🌙 ${t("evening")}`}
+                    {s === "MORNING" ? `🌅 ${t("morning")}` : s === "EVENING" ? `🌙 ${t("evening")}` : `📦 Other`}
                   </button>
                 ))}
               </div>

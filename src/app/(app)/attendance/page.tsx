@@ -5,13 +5,13 @@ import { today } from "@/lib/utils";
 import { useLang } from "@/lib/i18n";
 
 interface AttendanceEntry {
-  customer: { id: number; name: string; shift: string; defaultQuantity: number; mobile: string };
+  customer: { id: number; name: string; shift: string; defaultQuantity: number | null; mobile: string };
   isPresent: boolean;
   quantityTaken: number;
   record: { id: number } | null;
 }
 
-const PAGE_SIZE = 20;
+type Shift = "MORNING" | "EVENING" | "OTHER";
 
 export default function AttendancePage() {
   return (
@@ -24,22 +24,22 @@ export default function AttendancePage() {
 function AttendanceInner() {
   const { t } = useLang();
   const searchParams = useSearchParams();
-  const initialShift = (searchParams.get("shift") === "EVENING" ? "EVENING" : "MORNING") as "MORNING" | "EVENING";
+  const sp = searchParams.get("shift");
+  const initialShift: Shift = sp === "EVENING" ? "EVENING" : sp === "OTHER" ? "OTHER" : "MORNING";
 
   const [date, setDate] = useState(today());
-  const [shift, setShift] = useState<"MORNING" | "EVENING">(initialShift);
+  const [shift, setShift] = useState<Shift>(initialShift);
   const [entries, setEntries] = useState<AttendanceEntry[]>([]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState("");
 
   const loadAttendance = useCallback(async () => {
     setLoading(true);
     const res = await fetch(`/api/attendance?date=${date}&shift=${shift}`);
     if (res.ok) setEntries(await res.json());
     setLoading(false);
-    setPage(1);
   }, [date, shift]);
 
   useEffect(() => { loadAttendance(); }, [loadAttendance]);
@@ -48,7 +48,7 @@ function AttendanceInner() {
     setEntries((prev) =>
       prev.map((e) =>
         e.customer.id === id
-          ? { ...e, isPresent: !e.isPresent, quantityTaken: !e.isPresent ? e.customer.defaultQuantity : 0 }
+          ? { ...e, isPresent: !e.isPresent, quantityTaken: !e.isPresent ? (e.customer.defaultQuantity ?? 0) : 0 }
           : e
       )
     );
@@ -67,7 +67,7 @@ function AttendanceInner() {
       prev.map((e) => ({
         ...e,
         isPresent: present,
-        quantityTaken: present ? e.customer.defaultQuantity : 0,
+        quantityTaken: present ? (e.customer.defaultQuantity ?? 0) : 0,
       }))
     );
   }
@@ -94,11 +94,12 @@ function AttendanceInner() {
 
   const presentCount = entries.filter((e) => e.isPresent).length;
   const takenQty = entries.filter((e) => e.isPresent).reduce((s, e) => s + e.quantityTaken, 0);
-  const remainingToGive = entries.filter((e) => !e.isPresent).reduce((s, e) => s + e.customer.defaultQuantity, 0);
+  const remainingToGive = entries.filter((e) => !e.isPresent).reduce((s, e) => s + (e.customer.defaultQuantity ?? 0), 0);
   const notTakenList = entries.filter((e) => !e.isPresent);
 
-  const totalPages = Math.max(1, Math.ceil(entries.length / PAGE_SIZE));
-  const pageEntries = entries.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const filteredEntries = search.trim()
+    ? entries.filter((e) => e.customer.name.toLowerCase().includes(search.trim().toLowerCase()))
+    : entries;
 
   return (
     <div className="p-4 md:p-6">
@@ -118,7 +119,7 @@ function AttendanceInner() {
         <div>
           <label className="text-xs text-gray-500 block mb-1">{t("shift")}</label>
           <div className="flex rounded-lg overflow-hidden border border-gray-300">
-            {(["MORNING", "EVENING"] as const).map((s) => (
+            {(["MORNING", "EVENING", "OTHER"] as const).map((s) => (
               <button
                 key={s}
                 onClick={() => setShift(s)}
@@ -126,10 +127,20 @@ function AttendanceInner() {
                   shift === s ? "bg-blue-600 text-white" : "bg-white text-gray-600 hover:bg-gray-50"
                 }`}
               >
-                {s === "MORNING" ? `🌅 ${t("morning")}` : `🌙 ${t("evening")}`}
+                {s === "MORNING" ? `🌅 ${t("morning")}` : s === "EVENING" ? `🌙 ${t("evening")}` : `📦 Other`}
               </button>
             ))}
           </div>
+        </div>
+        <div className="flex-1 min-w-[180px]">
+          <label className="text-xs text-gray-500 block mb-1">Search</label>
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search by name..."
+            className="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
         </div>
         <div className="ml-auto flex gap-2">
           <button onClick={() => markAll(true)} className="text-sm px-3 py-1.5 bg-green-50 text-green-700 border border-green-200 rounded-lg hover:bg-green-100">
@@ -168,7 +179,7 @@ function AttendanceInner() {
       {notTakenList.length > 0 && (
         <div className="bg-orange-50 border border-orange-200 rounded-xl p-3 mb-4 text-sm text-orange-700">
           <strong>{t("notTakingToday")}:</strong>{" "}
-          {notTakenList.map((e) => `${e.customer.name} (${e.customer.defaultQuantity}L)`).join(", ")}
+          {notTakenList.map((e) => `${e.customer.name}${e.customer.defaultQuantity ? ` (${e.customer.defaultQuantity}L)` : ""}`).join(", ")}
         </div>
       )}
 
@@ -178,9 +189,11 @@ function AttendanceInner() {
       ) : entries.length === 0 ? (
         <div className="text-gray-400 text-center py-10">{t("noCustomersShift")}</div>
       ) : (
-        <>
-          <div className="space-y-2">
-            {pageEntries.map((entry) => (
+        <div className="space-y-2">
+          {filteredEntries.length === 0 ? (
+            <div className="text-gray-400 text-center py-6">No matches</div>
+          ) : (
+            filteredEntries.map((entry) => (
               <div
                 key={entry.customer.id}
                 className={`bg-white rounded-xl border p-4 flex items-center gap-4 transition ${
@@ -205,7 +218,7 @@ function AttendanceInner() {
                   <span className="text-xs text-gray-400">{t("qtyL")}</span>
                   <input
                     type="number"
-                    step="0.5"
+                    step="0.01"
                     min="0"
                     value={entry.quantityTaken}
                     onChange={(e) => setQty(entry.customer.id, e.target.value)}
@@ -214,32 +227,9 @@ function AttendanceInner() {
                   />
                 </div>
               </div>
-            ))}
-          </div>
-
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-center gap-3 mt-4 text-sm">
-              <button
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={page === 1}
-                className="px-3 py-1.5 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50 disabled:opacity-40"
-              >
-                {t("prev")}
-              </button>
-              <span className="text-gray-500">
-                {t("page")} {page} {t("of")} {totalPages}
-              </span>
-              <button
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                disabled={page === totalPages}
-                className="px-3 py-1.5 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50 disabled:opacity-40"
-              >
-                {t("next")}
-              </button>
-            </div>
+            ))
           )}
-        </>
+        </div>
       )}
 
       {/* Save button */}

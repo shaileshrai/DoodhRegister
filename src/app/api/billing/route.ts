@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
       );
 
     const totalQuantity = records.reduce((sum, r) => sum + r.quantityTaken, 0);
-    const totalAmount = totalQuantity * customer.rate;
+    const totalAmount = totalQuantity * (customer.rate ?? 0);
 
     const [bill] = await db
       .insert(monthlyBills)

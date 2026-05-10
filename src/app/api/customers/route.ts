@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { customers } from "@/db/schema";
-import { eq } from "drizzle-orm";
 import { getSession } from "@/lib/session";
 import { today } from "@/lib/utils";
 
@@ -20,13 +19,24 @@ export async function POST(req: NextRequest) {
   const body = await req.json();
   const { name, mobile, shift, rate, defaultQuantity } = body;
 
-  if (!name || !mobile || !shift || !rate || !defaultQuantity) {
-    return NextResponse.json({ error: "All fields are required" }, { status: 400 });
+  if (!name || !mobile || !shift) {
+    return NextResponse.json({ error: "Name, mobile, and shift are required" }, { status: 400 });
+  }
+
+  if (shift !== "OTHER" && (!rate || !defaultQuantity)) {
+    return NextResponse.json({ error: "Rate and quantity required for morning/evening" }, { status: 400 });
   }
 
   const [newCustomer] = await db
     .insert(customers)
-    .values({ name, mobile, shift, rate, defaultQuantity, joinedDate: today() })
+    .values({
+      name,
+      mobile,
+      shift,
+      rate: rate ?? null,
+      defaultQuantity: defaultQuantity ?? null,
+      joinedDate: today(),
+    })
     .returning();
 
   return NextResponse.json(newCustomer, { status: 201 });

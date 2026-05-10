@@ -10,7 +10,7 @@ export default function NewCustomerPage() {
     name: "",
     mobile: "",
     shift: "MORNING",
-    rate: "",
+    rate: "55",
     defaultQuantity: "",
   });
   const [saving, setSaving] = useState(false);
@@ -26,6 +26,11 @@ export default function NewCustomerPage() {
       setError(t("invalidMobile"));
       return;
     }
+    const isOther = form.shift === "OTHER";
+    if (!isOther && (!form.rate || !form.defaultQuantity)) {
+      setError("Rate and quantity are required for morning/evening customers");
+      return;
+    }
     setSaving(true);
     setError("");
     const res = await fetch("/api/customers", {
@@ -33,8 +38,8 @@ export default function NewCustomerPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         ...form,
-        rate: parseFloat(form.rate),
-        defaultQuantity: parseFloat(form.defaultQuantity),
+        rate: form.rate ? parseFloat(form.rate) : null,
+        defaultQuantity: form.defaultQuantity ? parseFloat(form.defaultQuantity) : null,
       }),
     });
     setSaving(false);
@@ -79,44 +84,47 @@ export default function NewCustomerPage() {
             )}
           </Field>
           <Field label={t("shift")} required>
-            <div className="flex rounded-lg overflow-hidden border border-gray-300">
-              {(["MORNING", "EVENING"] as const).map((s) => (
+            <div className="grid grid-cols-3 rounded-lg overflow-hidden border border-gray-300">
+              {(["MORNING", "EVENING", "OTHER"] as const).map((s) => (
                 <button
                   key={s}
                   type="button"
                   onClick={() => set("shift", s)}
-                  className={`flex-1 py-2.5 text-sm font-medium transition ${
+                  className={`py-2.5 text-sm font-medium transition ${
                     form.shift === s ? "bg-blue-600 text-white" : "bg-white text-gray-600 hover:bg-gray-50"
                   }`}
                 >
-                  {s === "MORNING" ? `🌅 ${t("morning")}` : `🌙 ${t("evening")}`}
+                  {s === "MORNING" ? `🌅 ${t("morning")}` : s === "EVENING" ? `🌙 ${t("evening")}` : `📦 Other`}
                 </button>
               ))}
             </div>
+            {form.shift === "OTHER" && (
+              <p className="text-xs text-gray-500 mt-1">Adhoc customer — rate & quantity optional</p>
+            )}
           </Field>
           <div className="grid grid-cols-2 gap-4">
-            <Field label={t("ratePerL")} required>
+            <Field label={t("ratePerL")} required={form.shift !== "OTHER"}>
               <input
                 type="number"
-                step="0.5"
+                step="0.01"
                 min="0"
                 value={form.rate}
                 onChange={(e) => set("rate", e.target.value)}
                 className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="e.g. 55"
-                required
+                required={form.shift !== "OTHER"}
               />
             </Field>
-            <Field label={t("dailyQty")} required>
+            <Field label={t("dailyQty")} required={form.shift !== "OTHER"}>
               <input
                 type="number"
-                step="0.5"
+                step="0.01"
                 min="0"
                 value={form.defaultQuantity}
                 onChange={(e) => set("defaultQuantity", e.target.value)}
                 className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="e.g. 2"
-                required
+                required={form.shift !== "OTHER"}
               />
             </Field>
           </div>

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { customers, dailyRecords } from "@/db/schema";
-import { eq, and, sql } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { getSession } from "@/lib/session";
 import { today } from "@/lib/utils";
 
@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
     .from(customers)
     .where(
       shift
-        ? and(eq(customers.isActive, true), eq(customers.shift, shift as "MORNING" | "EVENING"))
+        ? and(eq(customers.isActive, true), eq(customers.shift, shift as "MORNING" | "EVENING" | "OTHER"))
         : eq(customers.isActive, true)
     )
     .orderBy(customers.name);
@@ -36,7 +36,7 @@ export async function GET(req: NextRequest) {
       customer: c,
       record: record || null,
       isPresent: record?.isPresent ?? false,
-      quantityTaken: record?.quantityTaken ?? c.defaultQuantity,
+      quantityTaken: record?.quantityTaken ?? c.defaultQuantity ?? 0,
     };
   });
 
