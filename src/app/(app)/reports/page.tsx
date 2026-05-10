@@ -130,29 +130,29 @@ export default function ReportsPage() {
 
       {/* Financial Summary banner — shown at top of monthly tab */}
       {tab === "monthly" && !loading && monthlyReport && (
-        <div className="bg-gradient-to-r from-green-600 to-emerald-600 rounded-2xl p-5 text-white shadow-md mb-4">
-          <div className="text-xs font-medium opacity-80 mb-3 uppercase tracking-wide">
+        <div className="bg-gradient-to-r from-green-600 to-emerald-600 rounded-2xl p-3 md:p-5 text-white shadow-md mb-3">
+          <div className="text-[11px] md:text-xs font-medium opacity-80 mb-2 uppercase tracking-wide">
             {t("financialSummary")} — {MONTH_NAMES[month - 1]} {year}
           </div>
-          <div className="grid grid-cols-3 gap-4 mb-2">
-            <div>
-              <div className="text-xl font-bold">{formatCurrency(monthlyReport.totalRevenue)}</div>
-              <div className="text-xs opacity-75">{t("revenue")}</div>
+          <div className="grid grid-cols-3 gap-2 mb-2">
+            <div className="min-w-0">
+              <div className="text-sm md:text-xl font-bold truncate">{formatCurrency(monthlyReport.totalRevenue)}</div>
+              <div className="text-[10px] md:text-xs opacity-75">{t("revenue")}</div>
             </div>
-            <div>
-              <div className="text-xl font-bold">{formatCurrency(monthlyReport.totalExpenses)}</div>
-              <div className="text-xs opacity-75">{t("expenses_")}</div>
+            <div className="min-w-0">
+              <div className="text-sm md:text-xl font-bold truncate">{formatCurrency(monthlyReport.totalExpenses)}</div>
+              <div className="text-[10px] md:text-xs opacity-75">{t("expenses_")}</div>
             </div>
-            <div>
-              <div className={`text-xl font-bold ${monthlyReport.netProfit < 0 ? "text-red-200" : ""}`}>
+            <div className="min-w-0">
+              <div className={`text-sm md:text-xl font-bold truncate ${monthlyReport.netProfit < 0 ? "text-red-200" : ""}`}>
                 {formatCurrency(monthlyReport.netProfit)}
               </div>
-              <div className="text-xs opacity-75">{t("netProfit")}</div>
+              <div className="text-[10px] md:text-xs opacity-75">{t("netProfit")}</div>
             </div>
           </div>
-          <div className="flex justify-between text-xs opacity-75 pt-2 border-t border-white/20">
+          <div className="flex justify-between text-[11px] md:text-xs opacity-75 pt-2 border-t border-white/20">
             <span>✅ {monthlyReport.paidCount} paid</span>
-            <span>⏳ {monthlyReport.dueCount} {t("dueBills").toLowerCase()}</span>
+            <span>⏳ {monthlyReport.dueCount} due</span>
             <span>🥛 {monthlyReport.totalQuantity?.toFixed(1) ?? "0"} L</span>
           </div>
         </div>

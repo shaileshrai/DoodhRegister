@@ -187,18 +187,18 @@ export default function BillingPage() {
 
       {/* Summary */}
       {bills.length > 0 && (
-        <div className="grid grid-cols-3 gap-3 mb-4">
-          <div className="bg-white rounded-xl border p-3 text-center">
-            <div className="text-lg font-bold text-gray-800">{formatCurrency(totalRevenue)}</div>
-            <div className="text-xs text-gray-500">{t("totalRevenue")}</div>
+        <div className="grid grid-cols-3 gap-2 mb-3">
+          <div className="bg-white rounded-xl border p-2 text-center min-w-0">
+            <div className="text-sm font-bold text-gray-800 truncate">{formatCurrency(totalRevenue)}</div>
+            <div className="text-[10px] text-gray-500 leading-tight">{t("totalRevenue")}</div>
           </div>
-          <div className="bg-white rounded-xl border p-3 text-center">
-            <div className="text-lg font-bold text-green-600">{formatCurrency(paidAmount)}</div>
-            <div className="text-xs text-gray-500">{t("collected")}</div>
+          <div className="bg-white rounded-xl border p-2 text-center min-w-0">
+            <div className="text-sm font-bold text-green-600 truncate">{formatCurrency(paidAmount)}</div>
+            <div className="text-[10px] text-gray-500 leading-tight">{t("collected")}</div>
           </div>
-          <div className="bg-white rounded-xl border p-3 text-center">
-            <div className="text-lg font-bold text-orange-500">{formatCurrency(dueAmount)}</div>
-            <div className="text-xs text-gray-500">{t("pending")}</div>
+          <div className="bg-white rounded-xl border p-2 text-center min-w-0">
+            <div className="text-sm font-bold text-orange-500 truncate">{formatCurrency(dueAmount)}</div>
+            <div className="text-[10px] text-gray-500 leading-tight">{t("pending")}</div>
           </div>
         </div>
       )}
