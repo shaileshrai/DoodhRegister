@@ -64,6 +64,7 @@ export function runMigrations() {
   // Migration: add OTHER shift type and make rate/qty nullable
   const tableInfo = sqlite.prepare("SELECT sql FROM sqlite_master WHERE type='table' AND name='customers'").get() as { sql: string } | undefined;
   if (tableInfo && (!tableInfo.sql.includes("'OTHER'") || tableInfo.sql.includes("rate REAL NOT NULL"))) {
+    sqlite.pragma("foreign_keys = OFF");
     sqlite.exec(`
       BEGIN TRANSACTION;
       CREATE TABLE customers_new (
@@ -83,5 +84,6 @@ export function runMigrations() {
       ALTER TABLE customers_new RENAME TO customers;
       COMMIT;
     `);
+    sqlite.pragma("foreign_keys = ON");
   }
 }
