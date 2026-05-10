@@ -52,7 +52,7 @@ export default function NewCustomerPage() {
   }
 
   return (
-    <div className="p-4 md:p-6 max-w-lg mx-auto">
+    <div className="p-3 md:p-6 pb-20 md:pb-6 max-w-lg mx-auto">
       <div className="flex items-center gap-3 mb-6">
         <button onClick={() => router.back()} className="text-gray-400 hover:text-gray-600">←</button>
         <h1 className="text-2xl font-bold text-gray-800">{t("addCustomerTitle")}</h1>

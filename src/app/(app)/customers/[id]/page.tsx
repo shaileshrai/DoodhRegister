@@ -117,7 +117,7 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
   const totalDue = bills.filter((b) => b.paymentStatus === "DUE").reduce((s, b) => s + b.totalAmount, 0);
 
   return (
-    <div className="p-4 md:p-6 max-w-2xl mx-auto">
+    <div className="p-3 md:p-6 pb-20 md:pb-6 max-w-2xl mx-auto">
       {/* Header */}
       <div className="flex items-center gap-3 mb-4">
         <button onClick={() => router.back()} className="text-gray-400 hover:text-gray-600">←</button>

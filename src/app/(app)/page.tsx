@@ -69,17 +69,17 @@ export default function DashboardPage() {
   if (loading) return <div className="p-6 text-gray-400">{t("loading")}</div>;
 
   return (
-    <div className="p-4 md:p-6 space-y-4 bg-slate-50 min-h-screen">
+    <div className="p-3 md:p-6 pb-20 md:pb-6 space-y-3 bg-slate-50 min-h-screen">
       {/* Header */}
       <div className="pt-1">
-        <h1 className="text-xl font-bold text-slate-700">{t("dashboard")}</h1>
-        <p className="text-slate-400 text-sm">
+        <h1 className="text-lg md:text-xl font-bold text-slate-700">{t("dashboard")}</h1>
+        <p className="text-slate-400 text-xs md:text-sm">
           {now.toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
         </p>
       </div>
 
       {/* Shift cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <ShiftCard
           icon="🌅"
           label={t("morningShift")}
@@ -105,7 +105,7 @@ export default function DashboardPage() {
       {/* Quick actions */}
       <div>
         <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 px-1">Quick Actions</p>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="grid grid-cols-4 gap-2">
           {[
             { href: "/attendance",    label: t("attendance"),  icon: "✅", bg: "bg-sky-50   border-sky-200   text-sky-800"   },
             { href: "/customers/new", label: t("addCustomer"), icon: "➕", bg: "bg-teal-50  border-teal-200  text-teal-800"  },
@@ -113,9 +113,9 @@ export default function DashboardPage() {
             { href: "/expenses",      label: t("addExpense"),  icon: "💸", bg: "bg-rose-50  border-rose-200  text-rose-800"  },
           ].map((q) => (
             <Link key={q.href} href={q.href}
-              className={`border rounded-xl p-4 text-center hover:shadow-sm transition ${q.bg}`}>
-              <div className="text-2xl mb-1">{q.icon}</div>
-              <div className="text-xs font-semibold">{q.label}</div>
+              className={`border rounded-xl p-3 text-center active:shadow-sm transition ${q.bg}`}>
+              <div className="text-xl md:text-2xl mb-0.5">{q.icon}</div>
+              <div className="text-[10px] md:text-xs font-semibold leading-tight">{q.label}</div>
             </Link>
           ))}
         </div>

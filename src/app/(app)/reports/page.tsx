@@ -100,8 +100,8 @@ export default function ReportsPage() {
   }
 
   return (
-    <div className="p-4 md:p-6">
-      <h1 className="text-2xl font-bold text-gray-800 mb-4">{t("reportsTitle")}</h1>
+    <div className="p-3 md:p-6 pb-20 md:pb-6">
+      <h1 className="text-xl md:text-2xl font-bold text-gray-800 mb-3">{t("reportsTitle")}</h1>
 
       {/* Tab bar */}
       <div className="flex rounded-xl overflow-hidden border border-gray-200 mb-4 bg-white">

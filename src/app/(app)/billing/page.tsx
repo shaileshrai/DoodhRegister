@@ -140,44 +140,29 @@ export default function BillingPage() {
   const dueAmount = bills.filter((b) => b.bill.paymentStatus === "DUE").reduce((s, b) => s + b.bill.totalAmount, 0);
 
   return (
-    <div className="p-4 md:p-6">
-      <h1 className="text-2xl font-bold text-gray-800 mb-4">{t("billingTitle")}</h1>
+    <div className="p-3 md:p-6 pb-20 md:pb-6">
+      <h1 className="text-xl md:text-2xl font-bold text-gray-800 mb-3">{t("billingTitle")}</h1>
 
-      {/* Month selector + controls */}
-      <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4 flex flex-wrap gap-3 items-end">
-        <div>
-          <label className="text-xs text-gray-500 block mb-1">{t("monthly")}</label>
+      {/* Month selector + controls — stacked on mobile */}
+      <div className="bg-white rounded-xl border border-gray-200 p-3 mb-3 space-y-2.5">
+        <div className="flex gap-2">
           <select
             value={month}
             onChange={(e) => { setMonth(parseInt(e.target.value)); setPage(1); }}
-            className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
+            className="flex-1 border border-gray-300 rounded-lg px-2 py-2 text-sm"
           >
             {MONTH_NAMES.map((m, i) => <option key={i} value={i + 1}>{m}</option>)}
           </select>
-        </div>
-        <div>
-          <label className="text-xs text-gray-500 block mb-1">{t("yearly")}</label>
           <input
             type="number"
             value={year}
             onChange={(e) => { setYear(parseInt(e.target.value)); setPage(1); }}
-            className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-24"
+            className="border border-gray-300 rounded-lg px-2 py-2 text-sm w-20"
           />
-        </div>
-        <button
-          onClick={generateBills}
-          disabled={generating}
-          className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded-lg font-medium transition disabled:opacity-60"
-        >
-          {generating ? t("generating") : t("generateBills")}
-        </button>
-        {/* Filter dropdown */}
-        <div>
-          <label className="text-xs text-gray-500 block mb-1">&nbsp;</label>
           <select
             value={filter}
             onChange={(e) => { setFilter(e.target.value as FilterStatus); setPage(1); }}
-            className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
+            className="border border-gray-300 rounded-lg px-2 py-2 text-sm"
           >
             <option value="ALL">{t("filterAll")}</option>
             <option value="PAID">{t("filterPaid")}</option>
@@ -186,11 +171,18 @@ export default function BillingPage() {
         </div>
         <input
           type="text"
-          placeholder={t("searchCustomer")}
+          placeholder={`🔍 ${t("searchCustomer")}`}
           value={search}
           onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-          className="ml-auto border border-gray-300 rounded-lg px-3 py-2 text-sm"
+          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
         />
+        <button
+          onClick={generateBills}
+          disabled={generating}
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded-lg font-medium transition disabled:opacity-60"
+        >
+          {generating ? t("generating") : `🧾 ${t("generateBills")}`}
+        </button>
       </div>
 
       {/* Summary */}
@@ -221,36 +213,35 @@ export default function BillingPage() {
         <>
           <div className="space-y-2">
             {pageRows.map((row) => (
-              <div key={row.bill.id} className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-3">
-                <div className={`w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0 ${row.customer.shift === "MORNING" ? "bg-amber-400" : row.customer.shift === "EVENING" ? "bg-indigo-400" : "bg-gray-400"}`}>
-                  {row.customer.name.charAt(0)}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="font-medium text-gray-800">{row.customer.name}</div>
-                  <div className="text-xs text-gray-400">{row.bill.totalQuantity.toFixed(1)} L{row.customer.rate != null ? ` · ₹${row.customer.rate}/L` : ""}</div>
-                </div>
-                <div className="text-right mr-2">
-                  <div className="font-semibold text-gray-800">{formatCurrency(row.bill.totalAmount)}</div>
-                  <div className="text-xs text-gray-400">{MONTH_NAMES[month - 1]}</div>
-                </div>
-                <div className="flex flex-col items-end gap-1.5">
-                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${row.bill.paymentStatus === "PAID" ? "bg-green-100 text-green-700" : "bg-orange-100 text-orange-700"}`}>
-                    {row.bill.paymentStatus}
-                  </span>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => markPayment(row.bill.id, row.bill.paymentStatus === "PAID" ? "DUE" : "PAID")}
-                      className="text-xs text-blue-600 hover:underline"
-                    >
-                      {row.bill.paymentStatus === "PAID" ? t("markDue") : t("markPaid")}
-                    </button>
-                    <button onClick={() => openPDF(row)} className="text-xs text-gray-500 hover:text-gray-700">
-                      {t("pdfLabel")}
-                    </button>
-                    <button onClick={() => shareWhatsApp(row)} className="text-xs text-green-600 hover:text-green-800">
-                      📲
-                    </button>
+              <div key={row.bill.id} className="bg-white rounded-xl border border-gray-200 p-3">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className={`w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0 ${row.customer.shift === "MORNING" ? "bg-amber-400" : row.customer.shift === "EVENING" ? "bg-indigo-400" : "bg-gray-400"}`}>
+                    {row.customer.name.charAt(0)}
                   </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium text-gray-800 text-sm truncate">{row.customer.name}</div>
+                    <div className="text-[11px] text-gray-400">{row.bill.totalQuantity.toFixed(1)} L{row.customer.rate != null ? ` · ₹${row.customer.rate}/L` : ""}</div>
+                  </div>
+                  <div className="text-right">
+                    <div className="font-semibold text-gray-800 text-sm">{formatCurrency(row.bill.totalAmount)}</div>
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${row.bill.paymentStatus === "PAID" ? "bg-green-100 text-green-700" : "bg-orange-100 text-orange-700"}`}>
+                      {row.bill.paymentStatus}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex gap-2 pt-2 border-t border-gray-100">
+                  <button
+                    onClick={() => markPayment(row.bill.id, row.bill.paymentStatus === "PAID" ? "DUE" : "PAID")}
+                    className="flex-1 text-xs py-1.5 rounded-lg bg-blue-50 text-blue-700 active:bg-blue-100"
+                  >
+                    {row.bill.paymentStatus === "PAID" ? t("markDue") : `✓ ${t("markPaid")}`}
+                  </button>
+                  <button onClick={() => openPDF(row)} className="flex-1 text-xs py-1.5 rounded-lg bg-gray-50 text-gray-700 active:bg-gray-100">
+                    🧾 {t("pdfLabel")}
+                  </button>
+                  <button onClick={() => shareWhatsApp(row)} className="flex-1 text-xs py-1.5 rounded-lg bg-green-50 text-green-700 active:bg-green-100">
+                    📲 Share
+                  </button>
                 </div>
               </div>
             ))}

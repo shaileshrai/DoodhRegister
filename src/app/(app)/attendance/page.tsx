@@ -95,67 +95,62 @@ function AttendanceInner() {
   const presentCount = entries.filter((e) => e.isPresent).length;
   const takenQty = entries.filter((e) => e.isPresent).reduce((s, e) => s + e.quantityTaken, 0);
   const remainingToGive = entries.filter((e) => !e.isPresent).reduce((s, e) => s + (e.customer.defaultQuantity ?? 0), 0);
-  const notTakenList = entries.filter((e) => !e.isPresent);
 
   const filteredEntries = search.trim()
     ? entries.filter((e) => e.customer.name.toLowerCase().includes(search.trim().toLowerCase()))
     : entries;
 
   return (
-    <div className="p-4 md:p-6">
-      <h1 className="text-2xl font-bold text-gray-800 mb-4">{t("attendance")}</h1>
+    <div className="p-3 md:p-6 pb-24 md:pb-6">
+      <h1 className="text-xl md:text-2xl font-bold text-gray-800 mb-3">{t("attendance")}</h1>
 
-      {/* Controls */}
-      <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4 flex flex-wrap gap-3 items-center">
-        <div>
-          <label className="text-xs text-gray-500 block mb-1">{t("date")}</label>
+      {/* Controls — stacked on mobile */}
+      <div className="bg-white rounded-xl border border-gray-200 p-3 mb-3 space-y-2.5">
+        {/* Row 1: date + shift toggle */}
+        <div className="flex gap-2 items-center">
           <input
             type="date"
             value={date}
             onChange={(e) => setDate(e.target.value)}
-            className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 flex-shrink-0"
           />
-        </div>
-        <div>
-          <label className="text-xs text-gray-500 block mb-1">{t("shift")}</label>
-          <div className="flex rounded-lg overflow-hidden border border-gray-300">
+          <div className="flex flex-1 rounded-lg overflow-hidden border border-gray-300">
             {(["MORNING", "EVENING", "OTHER"] as const).map((s) => (
               <button
                 key={s}
                 onClick={() => setShift(s)}
-                className={`px-4 py-1.5 text-sm font-medium transition ${
-                  shift === s ? "bg-blue-600 text-white" : "bg-white text-gray-600 hover:bg-gray-50"
+                className={`flex-1 py-1.5 text-xs font-medium transition ${
+                  shift === s ? "bg-blue-600 text-white" : "bg-white text-gray-600"
                 }`}
               >
-                {s === "MORNING" ? `🌅 ${t("morning")}` : s === "EVENING" ? `🌙 ${t("evening")}` : `📦 Other`}
+                {s === "MORNING" ? "🌅" : s === "EVENING" ? "🌙" : "📦"} {s === "MORNING" ? t("morning") : s === "EVENING" ? t("evening") : "Other"}
               </button>
             ))}
           </div>
         </div>
-        <div className="flex-1 min-w-[180px]">
-          <label className="text-xs text-gray-500 block mb-1">Search</label>
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by name..."
-            className="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-        <div className="ml-auto flex gap-2">
-          <button onClick={() => markAll(true)} className="text-sm px-3 py-1.5 bg-green-50 text-green-700 border border-green-200 rounded-lg hover:bg-green-100">
-            {t("allPresent")}
+        {/* Row 2: search */}
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="🔍 Search by name..."
+          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        {/* Row 3: bulk actions */}
+        <div className="flex gap-2">
+          <button onClick={() => markAll(true)} className="flex-1 text-xs px-3 py-1.5 bg-green-50 text-green-700 border border-green-200 rounded-lg active:bg-green-100">
+            ✓ {t("allPresent")}
           </button>
-          <button onClick={() => markAll(false)} className="text-sm px-3 py-1.5 bg-red-50 text-red-700 border border-red-200 rounded-lg hover:bg-red-100">
-            {t("allAbsent")}
+          <button onClick={() => markAll(false)} className="flex-1 text-xs px-3 py-1.5 bg-red-50 text-red-700 border border-red-200 rounded-lg active:bg-red-100">
+            ✗ {t("allAbsent")}
           </button>
         </div>
       </div>
 
       {/* Summary bar */}
-      <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 mb-3 flex flex-wrap gap-4 text-sm">
+      <div className="bg-blue-50 border border-blue-200 rounded-xl px-3 py-2 mb-3 flex justify-between text-xs md:text-sm">
         <span className="text-blue-700">
-          <strong>{presentCount}</strong> / {entries.length} {t("present")}
+          <strong>{presentCount}</strong>/{entries.length} {t("present")}
         </span>
         <span className="text-blue-700">
           {t("takenLabel")}: <strong>{takenQty.toFixed(1)} L</strong>
@@ -164,22 +159,12 @@ function AttendanceInner() {
 
       {/* Remaining to give */}
       {remainingToGive > 0 && (
-        <div className="bg-amber-50 border-2 border-amber-400 rounded-xl p-4 mb-3">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="font-semibold text-amber-800">{t("remainingToGive")}</div>
-              <div className="text-xs text-amber-700 mt-0.5">{t("remainingToGiveHint")}</div>
-            </div>
-            <div className="text-3xl font-bold text-amber-700">{remainingToGive.toFixed(1)} L</div>
+        <div className="bg-amber-50 border-2 border-amber-400 rounded-xl p-3 mb-3 flex items-center justify-between">
+          <div>
+            <div className="font-semibold text-amber-800 text-sm">{t("remainingToGive")}</div>
+            <div className="text-[11px] text-amber-700">{t("remainingToGiveHint")}</div>
           </div>
-        </div>
-      )}
-
-      {/* Not taken list */}
-      {notTakenList.length > 0 && (
-        <div className="bg-orange-50 border border-orange-200 rounded-xl p-3 mb-4 text-sm text-orange-700">
-          <strong>{t("notTakingToday")}:</strong>{" "}
-          {notTakenList.map((e) => `${e.customer.name}${e.customer.defaultQuantity ? ` (${e.customer.defaultQuantity}L)` : ""}`).join(", ")}
+          <div className="text-2xl font-bold text-amber-700">{remainingToGive.toFixed(1)} L</div>
         </div>
       )}
 
@@ -196,51 +181,51 @@ function AttendanceInner() {
             filteredEntries.map((entry) => (
               <div
                 key={entry.customer.id}
-                className={`bg-white rounded-xl border p-4 flex items-center gap-4 transition ${
-                  entry.isPresent ? "border-green-300" : "border-gray-200 opacity-70"
+                className={`bg-white rounded-xl border p-3 flex items-center gap-3 transition ${
+                  entry.isPresent ? "border-green-300" : "border-gray-200 opacity-75"
                 }`}
               >
                 <button
                   onClick={() => toggle(entry.customer.id)}
-                  className={`w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center text-lg border-2 transition ${
+                  className={`w-11 h-11 rounded-full flex-shrink-0 flex items-center justify-center text-lg border-2 transition ${
                     entry.isPresent
                       ? "bg-green-500 border-green-500 text-white"
                       : "bg-white border-gray-300 text-gray-300"
                   }`}
+                  aria-label={entry.isPresent ? "Mark absent" : "Mark present"}
                 >
                   {entry.isPresent ? "✓" : "○"}
                 </button>
                 <div className="flex-1 min-w-0">
-                  <div className="font-medium text-gray-800">{entry.customer.name}</div>
-                  <div className="text-xs text-gray-400">{entry.customer.mobile}</div>
+                  <div className="font-medium text-gray-800 text-sm truncate">{entry.customer.name}</div>
+                  <div className="text-[11px] text-gray-400">{entry.customer.mobile}</div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-gray-400">{t("qtyL")}</span>
-                  <input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={entry.quantityTaken}
-                    onChange={(e) => setQty(entry.customer.id, e.target.value)}
-                    disabled={!entry.isPresent}
-                    className="w-20 border border-gray-300 rounded-lg px-2 py-1.5 text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50 disabled:text-gray-400"
-                  />
-                </div>
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  step="0.01"
+                  min="0"
+                  value={entry.quantityTaken}
+                  onChange={(e) => setQty(entry.customer.id, e.target.value)}
+                  disabled={!entry.isPresent}
+                  className="w-16 border border-gray-300 rounded-lg px-1.5 py-1.5 text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50 disabled:text-gray-400"
+                  placeholder="L"
+                />
               </div>
             ))
           )}
         </div>
       )}
 
-      {/* Save button */}
+      {/* Save button — fixed at bottom on mobile */}
       {entries.length > 0 && (
-        <div className="sticky bottom-20 md:bottom-4 mt-4">
+        <div className="fixed md:sticky bottom-16 md:bottom-4 left-0 right-0 px-3 md:px-0 z-40">
           <button
             onClick={saveAttendance}
             disabled={saving}
             className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl shadow-lg transition disabled:opacity-60"
           >
-            {saving ? t("saving") : saved ? t("saved") : t("saveAttendance")}
+            {saving ? t("saving") : saved ? `✓ ${t("saved")}` : t("saveAttendance")}
           </button>
         </div>
       )}
