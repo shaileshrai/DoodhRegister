@@ -153,7 +153,7 @@ export default function ReportsPage() {
           <div className="flex justify-between text-[11px] md:text-xs opacity-75 pt-2 border-t border-white/20">
             <span>✅ {monthlyReport.paidCount} paid</span>
             <span>⏳ {monthlyReport.dueCount} due</span>
-            <span>🥛 {monthlyReport.totalQuantity?.toFixed(1) ?? "0"} L</span>
+            <span>🥛 {monthlyReport.totalQuantity?.toFixed(2) ?? "0"} L</span>
           </div>
         </div>
       )}

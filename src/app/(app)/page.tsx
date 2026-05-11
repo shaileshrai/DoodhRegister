@@ -253,9 +253,9 @@ function ShiftCard({
       <div className="p-4 space-y-3">
         <div className="grid grid-cols-2 gap-3">
           {/* Regular stats */}
-          <StatBox label={t("expected")} value={`${stats.expected.toFixed(1)} L`}
+          <StatBox label={t("expected")} value={`${stats.expected.toFixed(2)} L`}
             bg={s.statBg} valColor={s.statVal} lblColor={s.statLbl} />
-          <StatBox label={t("taken")} value={`${stats.taken.toFixed(1)} L`}
+          <StatBox label={t("taken")} value={`${stats.taken.toFixed(2)} L`}
             bg={s.statBg} valColor={s.statVal} lblColor={s.statLbl} />
 
           {/* Present count */}
@@ -268,7 +268,7 @@ function ShiftCard({
           {/* Remaining — highlighted only when non-zero */}
           <StatBox
             label={t("remainingToGive")}
-            value={`${stats.remainingToGive.toFixed(1)} L`}
+            value={`${stats.remainingToGive.toFixed(2)} L`}
             bg={stats.remainingToGive > 0 ? s.highlight : s.statBg}
             valColor={stats.remainingToGive > 0 ? s.hlVal : s.statVal}
             lblColor={stats.remainingToGive > 0 ? s.hlLbl : s.statLbl}

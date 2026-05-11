@@ -153,7 +153,7 @@ function AttendanceInner() {
           <strong>{presentCount}</strong>/{entries.length} {t("present")}
         </span>
         <span className="text-blue-700">
-          {t("takenLabel")}: <strong>{takenQty.toFixed(1)} L</strong>
+          {t("takenLabel")}: <strong>{takenQty.toFixed(2)} L</strong>
         </span>
       </div>
 
@@ -164,7 +164,7 @@ function AttendanceInner() {
             <div className="font-semibold text-amber-800 text-sm">{t("remainingToGive")}</div>
             <div className="text-[11px] text-amber-700">{t("remainingToGiveHint")}</div>
           </div>
-          <div className="text-2xl font-bold text-amber-700">{remainingToGive.toFixed(1)} L</div>
+          <div className="text-2xl font-bold text-amber-700">{remainingToGive.toFixed(2)} L</div>
         </div>
       )}
 

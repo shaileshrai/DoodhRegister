@@ -164,7 +164,7 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
             }} className="p-2 rounded-lg hover:bg-gray-100">←</button>
             <div className="text-center">
               <div className="font-semibold">{MONTH_NAMES[calMonth - 1]} {calYear}</div>
-              <div className="text-xs text-gray-400">{monthTotal.toFixed(1)} L · {formatCurrency(monthAmount)}</div>
+              <div className="text-xs text-gray-400">{monthTotal.toFixed(2)} L · {formatCurrency(monthAmount)}</div>
             </div>
             <button onClick={() => {
               if (calMonth === 12) { setCalMonth(1); setCalYear(y => y + 1); }
@@ -221,7 +221,7 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="font-semibold text-gray-800">{MONTH_NAMES[bill.month - 1]} {bill.year}</div>
-                    <div className="text-sm text-gray-500">{bill.totalQuantity.toFixed(1)} L · {formatCurrency(bill.totalAmount)}</div>
+                    <div className="text-sm text-gray-500">{bill.totalQuantity.toFixed(2)} L · {formatCurrency(bill.totalAmount)}</div>
                   </div>
                   <div className="flex flex-col items-end gap-2">
                     <span className={`text-xs px-2 py-1 rounded-full font-medium ${bill.paymentStatus === "PAID" ? "bg-green-100 text-green-700" : "bg-orange-100 text-orange-700"}`}>

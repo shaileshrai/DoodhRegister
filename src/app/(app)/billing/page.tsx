@@ -102,12 +102,12 @@ export default function BillingPage() {
       const dateStr = `${year}-${String(month).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
       const rec = dailyRecords.find((r) => r.date === dateStr);
       if (rec && rec.isPresent) {
-        lines.push(`  ${d}: ${rec.quantityTaken.toFixed(1)} L`);
+        lines.push(`  ${d}: ${rec.quantityTaken.toFixed(2)} L`);
       }
     }
 
     lines.push(``);
-    lines.push(`Total Qty: ${row.bill.totalQuantity.toFixed(1)} L`);
+    lines.push(`Total Qty: ${row.bill.totalQuantity.toFixed(2)} L`);
     lines.push(`This Month: ₹${row.bill.totalAmount.toFixed(2)}`);
     if (prevDue > 0) {
       lines.push(`Prev Due (${MONTH_NAMES[prevMonth - 1]}): ₹${prevDue.toFixed(2)}`);
@@ -220,7 +220,7 @@ export default function BillingPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="font-medium text-gray-800 text-sm truncate">{row.customer.name}</div>
-                    <div className="text-[11px] text-gray-400">{row.bill.totalQuantity.toFixed(1)} L{row.customer.rate != null ? ` · ₹${row.customer.rate}/L` : ""}</div>
+                    <div className="text-[11px] text-gray-400">{row.bill.totalQuantity.toFixed(2)} L{row.customer.rate != null ? ` · ₹${row.customer.rate}/L` : ""}</div>
                   </div>
                   <div className="text-right">
                     <div className="font-semibold text-gray-800 text-sm">{formatCurrency(row.bill.totalAmount)}</div>
@@ -291,7 +291,7 @@ function generateBillHTML(
     const dateStr = `${year}-${String(month).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
     const rec = dailyRecords.find((r) => r.date === dateStr);
     if (rec && rec.isPresent) {
-      dailyRows += `<tr><td>${d}</td><td>${rec.quantityTaken.toFixed(1)} L</td></tr>`;
+      dailyRows += `<tr><td>${d}</td><td>${rec.quantityTaken.toFixed(2)} L</td></tr>`;
     }
   }
 
@@ -343,7 +343,7 @@ function generateBillHTML(
   </table>
 
   <table class="summary-table">
-    <tr><td>Total Quantity</td><td>${bill.totalQuantity.toFixed(1)} L</td></tr>
+    <tr><td>Total Quantity</td><td>${bill.totalQuantity.toFixed(2)} L</td></tr>
     <tr><td>This Month (${MONTH_NAMES[month - 1]})</td><td>₹${bill.totalAmount.toFixed(2)}</td></tr>
     ${prevDueRow}
     <tr class="total-row"><td>Net Amount Due</td><td>₹${netDue.toFixed(2)}</td></tr>
