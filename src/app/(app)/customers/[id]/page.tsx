@@ -47,6 +47,45 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
   const [calYear, setCalYear] = useState(now.getFullYear());
   const [calMonth, setCalMonth] = useState(now.getMonth() + 1);
 
+  // Day-edit modal state
+  const [editDate, setEditDate] = useState<string | null>(null);
+  const [editPresent, setEditPresent] = useState(false);
+  const [editQty, setEditQty] = useState<string>("0");
+  const [editSaving, setEditSaving] = useState(false);
+
+  function openDayEdit(dateStr: string, record: DailyRecord | undefined) {
+    setEditDate(dateStr);
+    if (record) {
+      setEditPresent(record.isPresent);
+      setEditQty(String(record.quantityTaken));
+    } else {
+      setEditPresent(true);
+      setEditQty(String(customer?.defaultQuantity ?? 0));
+    }
+  }
+
+  async function saveDayEdit() {
+    if (!editDate || !customer) return;
+    setEditSaving(true);
+    const qty = parseFloat(editQty) || 0;
+    const res = await fetch("/api/attendance", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        customerId: customer.id,
+        date: editDate,
+        isPresent: editPresent,
+        quantityTaken: editPresent ? qty : 0,
+      }),
+    });
+    if (res.ok) {
+      const refreshed = await fetch(`/api/attendance/customer/${id}?year=${calYear}&month=${calMonth}`);
+      if (refreshed.ok) setRecords(await refreshed.json());
+      setEditDate(null);
+    }
+    setEditSaving(false);
+  }
+
   useEffect(() => {
     async function load() {
       const [cRes, bRes] = await Promise.all([
@@ -184,10 +223,12 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
             {Array.from({ length: daysInMonth }, (_, i) => i + 1).map((day) => {
               const dayStr = String(day).padStart(2, "0");
               const record = recordMap.get(dayStr);
+              const dateStr = `${calYear}-${String(calMonth).padStart(2, "0")}-${dayStr}`;
               return (
-                <div
+                <button
                   key={day}
-                  className={`aspect-square rounded-lg flex flex-col items-center justify-center text-xs font-medium transition ${
+                  onClick={() => openDayEdit(dateStr, record)}
+                  className={`aspect-square rounded-lg flex flex-col items-center justify-center text-xs font-medium transition hover:ring-2 hover:ring-blue-400 ${
                     record?.isPresent
                       ? "bg-green-100 text-green-700 border border-green-200"
                       : record
@@ -197,7 +238,7 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
                 >
                   <span>{day}</span>
                   {record?.isPresent && <span className="text-[9px] leading-none">{record.quantityTaken}L</span>}
-                </div>
+                </button>
               );
             })}
           </div>
@@ -206,6 +247,69 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
             <span className="flex items-center gap-1"><span className="w-3 h-3 bg-green-100 border border-green-200 rounded"></span> {t("takenLabel")}</span>
             <span className="flex items-center gap-1"><span className="w-3 h-3 bg-red-50 border border-red-100 rounded"></span> {t("absent")}</span>
             <span className="flex items-center gap-1"><span className="w-3 h-3 bg-gray-50 rounded"></span> {t("notRecorded")}</span>
+          </div>
+          <p className="mt-2 text-xs text-gray-400">Tap any day to edit the milk taken.</p>
+        </div>
+      )}
+
+      {/* Day Edit Modal */}
+      {editDate && customer && (
+        <div className="fixed inset-0 bg-black/40 flex items-end md:items-center justify-center z-50 p-4" onClick={() => setEditDate(null)}>
+          <div className="bg-white rounded-2xl w-full max-w-sm p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <h2 className="text-lg font-bold mb-1">Edit Day</h2>
+            <p className="text-sm text-gray-500 mb-4">{new Date(editDate).toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}</p>
+
+            <div className="mb-4">
+              <label className="text-sm font-medium text-gray-700 block mb-2">Status</label>
+              <div className="flex rounded-lg overflow-hidden border border-gray-300">
+                <button
+                  type="button"
+                  onClick={() => { setEditPresent(true); if (parseFloat(editQty) === 0) setEditQty(String(customer.defaultQuantity)); }}
+                  className={`flex-1 py-2.5 text-sm font-medium transition ${editPresent ? "bg-green-600 text-white" : "bg-white text-gray-600"}`}
+                >
+                  ✓ Taken
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setEditPresent(false); setEditQty("0"); }}
+                  className={`flex-1 py-2.5 text-sm font-medium transition ${!editPresent ? "bg-red-500 text-white" : "bg-white text-gray-600"}`}
+                >
+                  ✗ Not Taken
+                </button>
+              </div>
+            </div>
+
+            <div className="mb-4">
+              <label className="text-sm font-medium text-gray-700 block mb-1">Quantity (Litres)</label>
+              <input
+                type="number"
+                step="0.5"
+                min="0"
+                value={editQty}
+                onChange={(e) => setEditQty(e.target.value)}
+                disabled={!editPresent}
+                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50 disabled:text-gray-400"
+              />
+              <p className="text-xs text-gray-400 mt-1">Default: {customer.defaultQuantity} L/day · ₹{customer.rate}/L</p>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setEditDate(null)}
+                className="flex-1 py-2.5 border border-gray-300 rounded-xl text-sm font-medium"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={saveDayEdit}
+                disabled={editSaving}
+                className="flex-1 bg-blue-600 text-white py-2.5 rounded-xl text-sm font-medium disabled:opacity-60"
+              >
+                {editSaving ? "Saving…" : "Save"}
+              </button>
+            </div>
           </div>
         </div>
       )}
