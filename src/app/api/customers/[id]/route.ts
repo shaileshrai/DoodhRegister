@@ -30,6 +30,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   if (isActive !== undefined) {
     updates.isActive = isActive;
     if (!isActive) updates.leftDate = today();
+    else updates.leftDate = null;
   }
 
   const [updated] = await db.update(customers).set(updates).where(eq(customers.id, parseInt(id))).returning();

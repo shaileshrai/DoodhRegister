@@ -73,6 +73,8 @@ const translations = {
     saveChanges: "Save Changes",
     deactivate: "Deactivate",
     deactivateConfirm: "Mark this customer as inactive?",
+    activate: "Activate",
+    activateConfirm: "Reactivate this customer?",
     notRecorded: "Not recorded",
     absent: "Absent",
     // Billing
@@ -217,6 +219,8 @@ const translations = {
     saveChanges: "बदलाव सहेजें",
     deactivate: "निष्क्रिय करें",
     deactivateConfirm: "इस ग्राहक को निष्क्रिय करें?",
+    activate: "सक्रिय करें",
+    activateConfirm: "इस ग्राहक को फिर से सक्रिय करें?",
     notRecorded: "दर्ज नहीं",
     absent: "अनुपस्थित",
     // Billing

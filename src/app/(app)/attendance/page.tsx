@@ -185,17 +185,28 @@ function AttendanceInner() {
                   entry.isPresent ? "border-green-300" : "border-gray-200 opacity-75"
                 }`}
               >
-                <button
-                  onClick={() => toggle(entry.customer.id)}
-                  className={`w-11 h-11 rounded-full flex-shrink-0 flex items-center justify-center text-lg border-2 transition ${
-                    entry.isPresent
-                      ? "bg-green-500 border-green-500 text-white"
-                      : "bg-white border-gray-300 text-gray-300"
-                  }`}
-                  aria-label={entry.isPresent ? "Mark absent" : "Mark present"}
-                >
-                  {entry.isPresent ? "✓" : "○"}
-                </button>
+                <div className="flex flex-col gap-1 flex-shrink-0">
+                  <button
+                    onClick={() => { if (!entry.isPresent) toggle(entry.customer.id); }}
+                    className={`px-2 py-1 rounded text-[10px] font-semibold transition ${
+                      entry.isPresent
+                        ? "bg-green-500 text-white"
+                        : "bg-white border border-gray-300 text-gray-400"
+                    }`}
+                  >
+                    ✓ Taken
+                  </button>
+                  <button
+                    onClick={() => { if (entry.isPresent) toggle(entry.customer.id); }}
+                    className={`px-2 py-1 rounded text-[10px] font-semibold transition ${
+                      !entry.isPresent
+                        ? "bg-red-400 text-white"
+                        : "bg-white border border-gray-300 text-gray-400"
+                    }`}
+                  >
+                    ✗ Not
+                  </button>
+                </div>
                 <div className="flex-1 min-w-0">
                   <div className="font-medium text-gray-800 text-sm truncate">{entry.customer.name}</div>
                   <div className="text-[11px] text-gray-400">{entry.customer.mobile}</div>

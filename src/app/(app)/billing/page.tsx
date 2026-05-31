@@ -76,6 +76,62 @@ export default function BillingPage() {
     win.print();
   }
 
+  async function shareMobile(row: BillRow) {
+    const [recordsRes, prevBillsRes] = await Promise.all([
+      fetch(`/api/attendance/customer/${row.customer.id}?year=${year}&month=${month}`),
+      fetch(`/api/billing/customer/${row.customer.id}`),
+    ]);
+    const dailyRecords: DailyRecord[] = recordsRes.ok ? await recordsRes.json() : [];
+    const allBills: BillRow["bill"][] = prevBillsRes.ok ? await prevBillsRes.json() : [];
+
+    const prevMonth = month === 1 ? 12 : month - 1;
+    const prevYear = month === 1 ? year - 1 : year;
+    const prevBill = allBills.find((b) => b.year === prevYear && b.month === prevMonth);
+    const prevDue = prevBill?.paymentStatus === "DUE" ? prevBill.totalAmount : 0;
+    const netDue = row.bill.totalAmount + prevDue;
+
+    const lines: string[] = [
+      `🐄 Milk Bill — ${MONTH_NAMES[month - 1]} ${year}`,
+      `Customer: ${row.customer.name}`,
+    ];
+    if (row.customer.rate != null) lines.push(`Rate: ₹${row.customer.rate}/L`);
+    lines.push(``, `Daily Record:`);
+
+    const days = getDaysInMonth(year, month);
+    for (let d = 1; d <= days; d++) {
+      const dateStr = `${year}-${String(month).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+      const rec = dailyRecords.find((r) => r.date === dateStr);
+      if (rec && rec.isPresent) {
+        lines.push(`  ${d}: ${rec.quantityTaken.toFixed(2)} L`);
+      }
+    }
+    lines.push(``);
+    lines.push(`Total Qty: ${row.bill.totalQuantity.toFixed(2)} L`);
+    lines.push(`This Month: ₹${row.bill.totalAmount.toFixed(2)}`);
+    if (prevDue > 0) {
+      lines.push(`Prev Due (${MONTH_NAMES[prevMonth - 1]}): ₹${prevDue.toFixed(2)}`);
+    }
+    lines.push(`Net Due: ₹${netDue.toFixed(2)}`);
+    lines.push(`Status: ${row.bill.paymentStatus}`);
+
+    const text = lines.join("\n");
+    const title = `Milk Bill - ${row.customer.name} - ${MONTH_NAMES[month - 1]} ${year}`;
+
+    if (typeof navigator !== "undefined" && navigator.share) {
+      try {
+        await navigator.share({ title, text });
+        return;
+      } catch {
+        // user cancelled or not supported, fall through
+      }
+    }
+    // fallback: copy to clipboard
+    if (navigator.clipboard) {
+      await navigator.clipboard.writeText(text);
+      alert("Bill copied to clipboard!");
+    }
+  }
+
   async function shareWhatsApp(row: BillRow) {
     const [recordsRes, prevBillsRes] = await Promise.all([
       fetch(`/api/attendance/customer/${row.customer.id}?year=${year}&month=${month}`),
@@ -239,8 +295,11 @@ export default function BillingPage() {
                   <button onClick={() => openPDF(row)} className="flex-1 text-xs py-1.5 rounded-lg bg-gray-50 text-gray-700 active:bg-gray-100">
                     🧾 {t("pdfLabel")}
                   </button>
+                  <button onClick={() => shareMobile(row)} className="flex-1 text-xs py-1.5 rounded-lg bg-purple-50 text-purple-700 active:bg-purple-100">
+                    📱 Share
+                  </button>
                   <button onClick={() => shareWhatsApp(row)} className="flex-1 text-xs py-1.5 rounded-lg bg-green-50 text-green-700 active:bg-green-100">
-                    📲 Share
+                    📲 WA
                   </button>
                 </div>
               </div>

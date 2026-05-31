@@ -8,6 +8,7 @@ interface ShiftEntry {
   customer: { id: number; name: string; shift: string; defaultQuantity: number; mobile: string };
   isPresent: boolean;
   quantityTaken: number;
+  record: { id: number } | null;
 }
 
 interface AbsentCustomer {
@@ -52,7 +53,7 @@ export default function DashboardPage() {
     const expected = data.reduce((s, e) => s + e.customer.defaultQuantity, 0);
     const taken = data.filter((e) => e.isPresent).reduce((s, e) => s + e.quantityTaken, 0);
     const presentCount = data.filter((e) => e.isPresent).length;
-    const absentList = data.filter((e) => !e.isPresent).map((e) => ({
+    const absentList = data.filter((e) => e.record !== null && !e.isPresent).map((e) => ({
       id: e.customer.id,
       name: e.customer.name,
       mobile: e.customer.mobile,

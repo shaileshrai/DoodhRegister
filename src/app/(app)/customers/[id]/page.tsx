@@ -144,7 +144,19 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
   async function deactivate() {
     if (!confirm(t("deactivateConfirm"))) return;
     await fetch(`/api/customers/${id}`, { method: "DELETE" });
+    setCustomer((c) => c ? { ...c, isActive: false } : null);
     router.push("/customers");
+  }
+
+  async function activate() {
+    if (!confirm(t("activateConfirm"))) return;
+    await fetch(`/api/customers/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ isActive: true }),
+    });
+    setCustomer((c) => c ? { ...c, isActive: true } : null);
+    setForm((f) => ({ ...f, isActive: true }));
   }
 
   if (!customer) return <div className="p-6 text-gray-400">{t("loading")}</div>;
@@ -401,9 +413,13 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
             >
               {saving ? t("saving") : t("saveChanges")}
             </button>
-            {customer.isActive && (
+            {customer.isActive ? (
               <button onClick={deactivate} className="px-4 py-2.5 bg-red-50 text-red-500 border border-red-200 rounded-xl text-sm font-medium hover:bg-red-100">
                 {t("deactivate")}
+              </button>
+            ) : (
+              <button onClick={activate} className="px-4 py-2.5 bg-green-50 text-green-600 border border-green-200 rounded-xl text-sm font-medium hover:bg-green-100">
+                {t("activate")}
               </button>
             )}
           </div>
