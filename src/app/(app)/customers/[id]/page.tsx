@@ -266,7 +266,7 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
 
       {/* Day Edit Modal */}
       {editDate && customer && (
-        <div className="fixed inset-0 bg-black/40 flex items-end md:items-center justify-center z-50 p-4" onClick={() => setEditDate(null)}>
+        <div className="fixed inset-0 bg-black/40 flex items-end md:items-center justify-center z-[60] p-4 pb-24 md:pb-4" onClick={() => setEditDate(null)}>
           <div className="bg-white rounded-2xl w-full max-w-sm p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
             <h2 className="text-lg font-bold mb-1">Edit Day</h2>
             <p className="text-sm text-gray-500 mb-4">{new Date(editDate).toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}</p>

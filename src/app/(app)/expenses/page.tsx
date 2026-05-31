@@ -81,7 +81,7 @@ export default function ExpensesPage() {
 
       {/* Add Expense Modal */}
       {showForm && (
-        <div className="fixed inset-0 bg-black/40 flex items-end md:items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/40 flex items-end md:items-center justify-center z-[60] p-4 pb-24 md:pb-4">
           <div className="bg-white rounded-2xl w-full max-w-md shadow-xl flex flex-col max-h-[88vh]">
             <div className="px-6 pt-5 pb-3 flex-shrink-0">
               <h2 className="text-lg font-bold">{t("addExpenseTitle")}</h2>

@@ -127,7 +127,7 @@ export default function DashboardPage() {
       {/* Absent modal */}
       {absentModal && (
         <div
-          className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/40 p-4"
+          className="fixed inset-0 z-[60] flex items-end md:items-center justify-center bg-black/40 p-4 pb-24 md:pb-4"
           onClick={() => setAbsentModal(null)}
         >
           <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl" onClick={(e) => e.stopPropagation()}>
