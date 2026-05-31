@@ -24,6 +24,7 @@ interface ShiftStats {
   taken: number;
   presentCount: number;
   absentList: AbsentCustomer[];
+  notTakenList: AbsentCustomer[];
   remainingToGive: number;
 }
 
@@ -53,8 +54,7 @@ export default function DashboardPage() {
     const expected = data.reduce((s, e) => s + e.customer.defaultQuantity, 0);
     const taken = data.filter((e) => e.isPresent).reduce((s, e) => s + e.quantityTaken, 0);
     const presentCount = data.filter((e) => e.isPresent).length;
-    // Only show customers with NO record yet — these are pending delivery.
-    // Customers explicitly marked "Not Taken" (record exists, isPresent=false) are removed.
+    // Pending delivery — no record yet
     const absentList = data.filter((e) => e.record === null).map((e) => ({
       id: e.customer.id,
       name: e.customer.name,
@@ -62,8 +62,16 @@ export default function DashboardPage() {
       defaultQuantity: e.customer.defaultQuantity,
       shift: e.customer.shift,
     }));
+    // Explicitly marked Not Taken — for visibility only, NOT counted in "still to give"
+    const notTakenList = data.filter((e) => e.record !== null && !e.isPresent).map((e) => ({
+      id: e.customer.id,
+      name: e.customer.name,
+      mobile: e.customer.mobile,
+      defaultQuantity: e.customer.defaultQuantity,
+      shift: e.customer.shift,
+    }));
     const remainingToGive = absentList.reduce((s, e) => s + (e.defaultQuantity ?? 0), 0);
-    return { expected, taken, presentCount, absentList, remainingToGive };
+    return { expected, taken, presentCount, absentList, notTakenList, remainingToGive };
   }
 
   const ms = shiftStats(morningData);

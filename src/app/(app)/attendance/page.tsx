@@ -30,6 +30,7 @@ function AttendanceInner() {
   const [date, setDate] = useState(today());
   const [shift, setShift] = useState<Shift>(initialShift);
   const [entries, setEntries] = useState<AttendanceEntry[]>([]);
+  const [touched, setTouched] = useState<Set<number>>(new Set());
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -39,12 +40,14 @@ function AttendanceInner() {
     setLoading(true);
     const res = await fetch(`/api/attendance?date=${date}&shift=${shift}`);
     if (res.ok) setEntries(await res.json());
+    setTouched(new Set());
     setLoading(false);
   }, [date, shift]);
 
   useEffect(() => { loadAttendance(); }, [loadAttendance]);
 
   function toggle(id: number) {
+    setTouched((prev) => { const n = new Set(prev); n.add(id); return n; });
     setEntries((prev) =>
       prev.map((e) =>
         e.customer.id === id
@@ -55,6 +58,7 @@ function AttendanceInner() {
   }
 
   function setQty(id: number, qty: string) {
+    setTouched((prev) => { const n = new Set(prev); n.add(id); return n; });
     setEntries((prev) =>
       prev.map((e) =>
         e.customer.id === id ? { ...e, quantityTaken: parseFloat(qty) || 0 } : e
@@ -63,6 +67,7 @@ function AttendanceInner() {
   }
 
   function markAll(present: boolean) {
+    setTouched(new Set(entries.map((e) => e.customer.id)));
     setEntries((prev) =>
       prev.map((e) => ({
         ...e,
@@ -74,12 +79,22 @@ function AttendanceInner() {
 
   async function saveAttendance() {
     setSaving(true);
-    const payload = entries.map((e) => ({
-      customerId: e.customer.id,
-      date,
-      isPresent: e.isPresent,
-      quantityTaken: e.isPresent ? e.quantityTaken : 0,
-    }));
+    // Only send entries the user explicitly touched (toggled, edited qty, or used bulk action)
+    // OR entries that already have a server record (so edits to existing records still go through).
+    const payload = entries
+      .filter((e) => touched.has(e.customer.id) || e.record !== null)
+      .map((e) => ({
+        customerId: e.customer.id,
+        date,
+        isPresent: e.isPresent,
+        quantityTaken: e.isPresent ? e.quantityTaken : 0,
+      }));
+    if (payload.length === 0) {
+      setSaving(false);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+      return;
+    }
     const res = await fetch("/api/attendance/bulk", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -88,6 +103,8 @@ function AttendanceInner() {
     setSaving(false);
     if (res.ok) {
       setSaved(true);
+      setTouched(new Set());
+      loadAttendance();
       setTimeout(() => setSaved(false), 2000);
     }
   }
@@ -178,18 +195,22 @@ function AttendanceInner() {
           {filteredEntries.length === 0 ? (
             <div className="text-gray-400 text-center py-6">No matches</div>
           ) : (
-            filteredEntries.map((entry) => (
+            filteredEntries.map((entry) => {
+              const isSet = touched.has(entry.customer.id) || entry.record !== null;
+              const showTaken = isSet && entry.isPresent;
+              const showNot = isSet && !entry.isPresent;
+              return (
               <div
                 key={entry.customer.id}
                 className={`bg-white rounded-xl border p-3 flex items-center gap-3 transition ${
-                  entry.isPresent ? "border-green-300" : "border-gray-200 opacity-75"
+                  showTaken ? "border-green-300" : showNot ? "border-red-200 opacity-75" : "border-gray-200"
                 }`}
               >
                 <div className="flex flex-col gap-1 flex-shrink-0">
                   <button
-                    onClick={() => { if (!entry.isPresent) toggle(entry.customer.id); }}
+                    onClick={() => { if (!showTaken) toggle(entry.customer.id); }}
                     className={`px-2 py-1 rounded text-[10px] font-semibold transition ${
-                      entry.isPresent
+                      showTaken
                         ? "bg-green-500 text-white"
                         : "bg-white border border-gray-300 text-gray-400"
                     }`}
@@ -197,9 +218,14 @@ function AttendanceInner() {
                     ✓ Taken
                   </button>
                   <button
-                    onClick={() => { if (entry.isPresent) toggle(entry.customer.id); }}
+                    onClick={() => {
+                      if (!showNot) {
+                        setTouched((prev) => { const n = new Set(prev); n.add(entry.customer.id); return n; });
+                        setEntries((prev) => prev.map((e) => e.customer.id === entry.customer.id ? { ...e, isPresent: false, quantityTaken: 0 } : e));
+                      }
+                    }}
                     className={`px-2 py-1 rounded text-[10px] font-semibold transition ${
-                      !entry.isPresent
+                      showNot
                         ? "bg-red-400 text-white"
                         : "bg-white border border-gray-300 text-gray-400"
                     }`}
@@ -223,7 +249,8 @@ function AttendanceInner() {
                   placeholder="L"
                 />
               </div>
-            ))
+              );
+            })
           )}
         </div>
       )}
