@@ -53,14 +53,16 @@ export default function DashboardPage() {
     const expected = data.reduce((s, e) => s + e.customer.defaultQuantity, 0);
     const taken = data.filter((e) => e.isPresent).reduce((s, e) => s + e.quantityTaken, 0);
     const presentCount = data.filter((e) => e.isPresent).length;
-    const absentList = data.filter((e) => e.record !== null && !e.isPresent).map((e) => ({
+    // Only show customers with NO record yet — these are pending delivery.
+    // Customers explicitly marked "Not Taken" (record exists, isPresent=false) are removed.
+    const absentList = data.filter((e) => e.record === null).map((e) => ({
       id: e.customer.id,
       name: e.customer.name,
       mobile: e.customer.mobile,
       defaultQuantity: e.customer.defaultQuantity,
       shift: e.customer.shift,
     }));
-    const remainingToGive = absentList.reduce((s, e) => s + e.defaultQuantity, 0);
+    const remainingToGive = absentList.reduce((s, e) => s + (e.defaultQuantity ?? 0), 0);
     return { expected, taken, presentCount, absentList, remainingToGive };
   }
 
@@ -304,7 +306,7 @@ function ShiftCard({
           </button>
         ) : (
           <div className={`rounded-xl px-3 py-2.5 text-xs text-center font-medium ${s.allOkBg}`}>
-            ✅ All customers have taken milk
+            ✅ All deliveries recorded
           </div>
         )}
       </div>

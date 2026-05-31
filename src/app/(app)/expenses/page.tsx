@@ -82,57 +82,62 @@ export default function ExpensesPage() {
       {/* Add Expense Modal */}
       {showForm && (
         <div className="fixed inset-0 bg-black/40 flex items-end md:items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-xl overflow-y-auto max-h-[85vh]">
-            <h2 className="text-lg font-bold mb-4">{t("addExpenseTitle")}</h2>
-            <form onSubmit={addExpense} className="space-y-4">
-              <div>
-                <label className="text-sm font-medium text-gray-700 block mb-1">{t("category")}</label>
-                <select
-                  value={form.category}
-                  onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm"
-                >
-                  {EXPENSE_CATEGORIES.map((c) => (
-                    <option key={c} value={c}>{CATEGORY_ICONS[c]} {c}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
+          <div className="bg-white rounded-2xl w-full max-w-md shadow-xl flex flex-col max-h-[88vh]">
+            <div className="px-6 pt-5 pb-3 flex-shrink-0">
+              <h2 className="text-lg font-bold">{t("addExpenseTitle")}</h2>
+            </div>
+            <form onSubmit={addExpense} className="flex flex-col flex-1 overflow-hidden">
+              <div className="px-6 space-y-4 overflow-y-auto flex-1 pb-2">
                 <div>
-                  <label className="text-sm font-medium text-gray-700 block mb-1">{t("date")}</label>
-                  <input
-                    type="date"
-                    value={form.date}
-                    onChange={(e) => setForm((f) => ({ ...f, date: e.target.value }))}
+                  <label className="text-sm font-medium text-gray-700 block mb-1">{t("category")}</label>
+                  <select
+                    value={form.category}
+                    onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm"
-                    required
-                  />
+                  >
+                    {EXPENSE_CATEGORIES.map((c) => (
+                      <option key={c} value={c}>{CATEGORY_ICONS[c]} {c}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 block mb-1">{t("date")}</label>
+                    <input
+                      type="date"
+                      value={form.date}
+                      onChange={(e) => setForm((f) => ({ ...f, date: e.target.value }))}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 block mb-1">{t("amount")}</label>
+                    <input
+                      type="number"
+                      min="0"
+                      step="1"
+                      value={form.amount}
+                      onChange={(e) => setForm((f) => ({ ...f, amount: e.target.value }))}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm"
+                      placeholder="0"
+                      required
+                    />
+                  </div>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-700 block mb-1">{t("amount")}</label>
+                  <label className="text-sm font-medium text-gray-700 block mb-1">{t("description")}</label>
                   <input
-                    type="number"
-                    min="0"
-                    step="1"
-                    value={form.amount}
-                    onChange={(e) => setForm((f) => ({ ...f, amount: e.target.value }))}
+                    type="text"
+                    value={form.description}
+                    onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm"
-                    placeholder="0"
-                    required
+                    placeholder={t("descriptionPlaceholder")}
                   />
                 </div>
               </div>
-              <div>
-                <label className="text-sm font-medium text-gray-700 block mb-1">{t("description")}</label>
-                <input
-                  type="text"
-                  value={form.description}
-                  onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm"
-                  placeholder={t("descriptionPlaceholder")}
-                />
-              </div>
-              <div className="flex gap-3">
+              {/* Buttons always pinned at bottom */}
+              <div className="flex gap-3 px-6 py-4 border-t border-gray-100 flex-shrink-0">
                 <button type="button" onClick={() => setShowForm(false)} className="flex-1 py-2.5 border border-gray-300 rounded-xl text-sm font-medium">{t("cancel")}</button>
                 <button type="submit" disabled={saving} className="flex-1 bg-blue-600 text-white py-2.5 rounded-xl text-sm font-medium disabled:opacity-60">
                   {saving ? t("saving") : t("add")}
